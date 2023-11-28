@@ -390,10 +390,10 @@ with tab5:
 
 #RUTAS INCOMPLETAS
 
-ruta_af_mut=('ARCHIVOSPDB\AF\MUT')
+ruta_af_mut=('ARCHIVOSPDB/AF/MUT')
 
 
-barra_invertida = '\\'
+barra_invertida = '/'
 fin_ruta=('.pdb')
 
 #RUTA COMPLETAs
