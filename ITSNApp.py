@@ -622,7 +622,7 @@ with tab3:
             lista_columnas.append(i+1)                
 
         #SE GENERA UN EXPANDER PARA CADA REGISTRO SELECCIONADO
-        with st.expander(neo_s):
+        with st.expander(neo_s, expanded=True):
             
             listas = [list_Neo, list_espacios, list_Wt]
             df_compared_mut = pd.DataFrame(columns= lista_columnas, index=["NeoAntigen", "", "WildType"] , data=listas)
