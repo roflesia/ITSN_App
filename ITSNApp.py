@@ -1070,7 +1070,6 @@ with tab4:
         #Lista de pacientes
         lista_pt =  df_TNB_group['Sample'].unique()
 
-<<<<<<< HEAD
         #Df filtrando positivos
         df_TNB_Pos = df_TNB_group[df_TNB_group["pred_result"]=="Positive"]
 
@@ -1108,13 +1107,6 @@ with tab4:
         pos_pred_cohort_responses_dict = {}
         for each in df_TNB_Pos_0['Cohort'].unique():
             pos_pred_cohort_responses_dict[each] = {'R': [], 'NR': [], "p_value": -1}
-=======
-ruta_af_mut=('ARCHIVOSPDB/AF/MUT')
-
-
-barra_invertida = '/'
-fin_ruta=('.pdb')
->>>>>>> e78b7fed984aa82b8386670720354ce7e314dc41
 
         for j in range(len(df_TNB_Pos_0)):
             _cohort = df_TNB_Pos_0["Cohort"].iloc[j]
@@ -1149,7 +1141,6 @@ fin_ruta=('.pdb')
                                 x0=0, y0=0.05, x1=5, y1=0.05,
                                 line=dict(color="Black",width=2, dash="dot"))
 
-<<<<<<< HEAD
         with g1: 
             st.write("Wilcoxon p-value:")
             st.plotly_chart(Scatter_plot, use_container_width=True)
@@ -1166,6 +1157,3 @@ fin_ruta=('.pdb')
                 with st.expander(label=each, expanded=False):
                     st.write(each,"'s wilcoxon p-value: ", pos_pred_cohort_responses_dict[each]["p_value"])
                     st.plotly_chart(box_plot, use_container_width=True)
-=======
-        
->>>>>>> e78b7fed984aa82b8386670720354ce7e314dc41
