@@ -607,6 +607,7 @@ with tab3:
         paper_s=df_Selected.loc[i,"Paper"]
         gene_s=df_Selected.loc[i,"GeneSymbol"]
         length_s= df_Selected.loc[i, "Length"]
+        mut_pos_s = df_Selected.loc[i, "mutPosition"]
 
         #Genera lista a partir de string
         list_Neo = list(neo_s)
@@ -626,24 +627,29 @@ with tab3:
             listas = [list_Neo, list_espacios, list_Wt]
             df_compared_mut = pd.DataFrame(columns= lista_columnas, index=["NeoAntigen", "", "WildType"] , data=listas)
             
-            t1,t2= st.columns(2)
+            t1,t2, t3= st.columns([2,3,2])
             with t1:
                 st.metric(label = ("Neoantigen:"),
                         value = neo_s)
+            
                 st.metric(label = ("Wildtype:"),
                         value = wt_s)
+                
             with t2:
+                r1, r2 = st.columns(2)
+                with r1:
+                    st.write("	:straight_ruler:", "**Neoantigen lenght:** ", length_s)
+                with r2:
+                    st.write(":pushpin:", "**Mutation´s position:** ", mut_pos_s)
                 st.dataframe(df_compared_mut)
-            
-                st.metric(label = ("Length:"),
-                        value = length_s)
+                
 
-            st.write("Author:", author_s)
-            st.write("Reference Paper: ", paper_s)
-            #st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Illustration_HLA-A.png/330px-Illustration_HLA-A.png")
-            st.write("Gene:", gene_s)
 
-            st.write(list_Neo)
+            with t3:
+                st.write(" **Gene:** ")
+                st.write("🧬", gene_s )
+                st.write("**Link to  the author´s reference paper:** ")
+                st.page_link(page = paper_s, label = author_s, icon="📑")
 
 with tab4:
     ITSNdb = pd.read_csv("https://raw.githubusercontent.com/elmerfer/ITSNdb/main/data/ITSNdb.csv", index_col=False)
