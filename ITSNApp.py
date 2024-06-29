@@ -843,7 +843,7 @@ with tab4:
     else:   
         st.success("All files were succefully uploaded")
 
-        st.write(correlation)
+        
         
         st.header("ITSNdb")
 
