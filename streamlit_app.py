@@ -51,7 +51,7 @@ df_ITSNdb_complete["HLA_PROTEIN"] = HLAPROT
 #   Set Up de la applicación
 st.set_page_config(
     page_title="ITSNdb app",
-    page_icon="🧬",
+    page_icon="Logo_cel.png",
     layout="wide",
     initial_sidebar_state="collapsed",
     menu_items={
@@ -67,7 +67,7 @@ st.image("logo.png",
          width = 300)
 
 #   TABS
-tab1, tab2, tab3, tab4 = st.tabs(["HOME", "DATA BASE", "NEOANTIGEN INFORMATION", "SOFTWARE VALIDATION"])
+tab1, tab2, tab3 = st.tabs(["HOME", "DATABASE", "SOFTWARE VALIDATION"])
 
 #-----------------------------------------------------------------------------------------------------------------
 #   HOME
@@ -116,18 +116,18 @@ with tab1:
         st.subheader("About the data")
         col3, col4 = st.columns(2)
         with col3:
-            st.metric(label = ("Total number of entries:"),
+            st.metric(label = ("Total number of neoantigens:"),
                       value = Total_entries)
-            st.metric(label = ("Number of positive entries:"),
+            st.metric(label = ("Number of positive neoantigens:"),
                       value = Positive_entries)
-            st.metric(label = ("Number of anchor entries:"),
+            st.metric(label = ("Number of anchor mutations:"),
                       value = Anchor_entries)
         with col4:
             st.metric(label = ("Tumor types:"),
                       value = Tumor_types)
-            st.metric(label = ("Number of negative entries:"),
+            st.metric(label = ("Number of negative neoantigens:"),
                       value = Negative_entries)
-            st.metric(label = ("Number of non-anchor entries:"),
+            st.metric(label = ("Number of non-anchor mutations:"),
                       value = Non_Anchor_entries)
         style_metric_cards()
 
@@ -351,7 +351,7 @@ with tab1:
     ColA, ColB, ColC= st.columns([1,4,1], gap="large")
 
     with ColA:
-        st.subheader("Data visualization")
+        st.header("Statistical gaphs")
         ColAA, ColAB = st.columns(2)
         with ColAA:
             previous = st.button(":rewind:", use_container_width=True)
@@ -380,29 +380,37 @@ with tab1:
         # Contador = 5 --> Matriz frecuencia long 9
         # Contador = 6 --> Matriz frecuencia long 10
         # contador = 7 --> cant long 9 y long 10 y dividir pos y neg
-        
+        container = st.container(border=True)
+        with container:
     
-        if (st.session_state["contador"]+1) == 1:            
-            st.plotly_chart(fig_HLA, theme="streamlit", use_container_width=True)
-            st.caption('Fig 1. Neoantigen frequency by HLA allele, with further breakdown of immunogenic (positive) and non-immunogenic (negative) status for each HLA allele.')
-        if (st.session_state["contador"]+1) == 2:
-            st.plotly_chart(fig_tumor, theme="streamlit", use_container_width=True)
-            st.caption('Fig 2. Pie chart showing the distribution of tumor types in the database.')
-        if (st.session_state["contador"]+1) == 3:
-            st.plotly_chart(fig_PositionType_NeoType, use_container_width=True)
-            st.caption('Fig 3. Bar chart showing the frequency distribution of anchor and non-anchor position types, with further breakdown of immunogenic (positive) and non-immunogenic (negative) status for each position type.')
-        if (st.session_state["contador"]+1) == 4:
-            st.plotly_chart(fig_mutPosition_NeoType, use_container_width=True)
-            st.caption('Fig 4. Bar chart showing the frequency of mutations at each position, with further breakdown of immunogenic (positive) and non-immunogenic (negative) status for each position.')
-        if (st.session_state["contador"]+1) == 5:
-            st.plotly_chart(fig_Length_NeoType, use_container_width=True)
-            st.caption('Fig 5. Bar chart showing the frequency of neoantigen lengths, with further breakdown of immunogenic (positive) and non-immunogenic (negative) status for each length.')
-        if (st.session_state["contador"]+1) == 6:
-            st.plotly_chart(fig_mat_frec_9, use_container_width=True)
-            st.caption('Fig 6. FPM matrices of 9-mer neoantigens: A. Immunogenic, B. Non-immunogenic, C. Difference. Each matrix shows the frequency of each amino acid at each position.')
-        if (st.session_state["contador"]+1) == 7:   
-            st.plotly_chart(fig_mat_frec_10, use_container_width=True)
-            st.caption('Fig 7. FPM matrices of 10-mer neoantigens: A. Immunogenic, B. Non-immunogenic, C. Difference. Each matrix shows the frequency of each amino acid at each position.')
+            if (st.session_state["contador"]+1) == 1:   
+                st.subheader("HLA Alleles")         
+                st.plotly_chart(fig_HLA, theme="streamlit", use_container_width=True)
+                st.caption('Neoantigen frequency by HLA allele, with further breakdown of immunogenic (positive) and non-immunogenic (negative) status for each HLA allele.')
+            if (st.session_state["contador"]+1) == 2:
+                st.subheader("Tumor types")
+                st.plotly_chart(fig_tumor, theme="streamlit", use_container_width=True)
+                st.caption('Pie chart showing the distribution of tumor types in the database.')
+            if (st.session_state["contador"]+1) == 3:
+                st.subheader("Mutation types")
+                st.plotly_chart(fig_PositionType_NeoType, use_container_width=True)
+                st.caption('Bar chart showing the frequency distribution of anchor and non-anchor position types, with further breakdown of immunogenic (positive) and non-immunogenic (negative) status for each position type.')
+            if (st.session_state["contador"]+1) == 4:
+                st.subheader("Mutation's position")
+                st.plotly_chart(fig_mutPosition_NeoType, use_container_width=True)
+                st.caption('Bar chart showing the frequency of mutations at each position, with further breakdown of immunogenic (positive) and non-immunogenic (negative) status for each position.')
+            if (st.session_state["contador"]+1) == 5:
+                st.subheader("Neoantigens' length")
+                st.plotly_chart(fig_Length_NeoType, use_container_width=True)
+                st.caption('Bar chart showing the frequency of neoantigen lengths, with further breakdown of immunogenic (positive) and non-immunogenic (negative) status for each length.')
+            if (st.session_state["contador"]+1) == 6:
+                st.subheader("Length 9 neoantigens' FMP matrices")
+                st.plotly_chart(fig_mat_frec_9, use_container_width=True)
+                st.caption('FPM matrices of 9-mer neoantigens: A. Immunogenic, B. Non-immunogenic, C. Difference. Each matrix shows the frequency of each amino acid at each position.')
+            if (st.session_state["contador"]+1) == 7:   
+                st.subheader("Length 10 neoantigens' FMP matrices")
+                st.plotly_chart(fig_mat_frec_10, use_container_width=True)
+                st.caption('FPM matrices of 10-mer neoantigens: A. Immunogenic, B. Non-immunogenic, C. Difference. Each matrix shows the frequency of each amino acid at each position.')
 
         
 with tab2:
@@ -447,48 +455,113 @@ with tab2:
 
 
     #Creacion de objetos interctivos 
-    label_expander = "**Filters**"
-    with st.expander(label = label_expander,
-                      expanded = True):
+    # label_expander = "**Filters**"
+    # with st.expander(label = label_expander,
+    #                   expanded = True):
         
     
-        C1, C2, C3, C4, C5 = st.columns([2,2,2,1,1])
+    # C1, C2, C3, C4 = st.columns(4)
 
-        with C1:
-            Neoag_multiselect = st.multiselect(label = "Neoantigens", 
-                                        options = Neoag_list)
-            
-            HLA_gene_multiselect = st.multiselect(label = "HLA gene",
-                                            options = HLA_gene_list)
-            
-            gene_multiselect = st.multiselect (label = "Gene Symbol",
-                                        options = Gene_list)
+    # with C1:
+    #     Neoag_multiselect = st.multiselect(label = "Neoantigens", 
+    #                                 options = Neoag_list)
+    #     gene_multiselect = st.multiselect (label = "Gene Symbol",
+    #                                 options = Gene_list)
+    #     Neotype_list=st.radio(label = "Inmunogenecity",
+    #                             options = ["Both","Positive", "Negative"], 
+    #                             index=0)
 
-        with C2:
-            Wt_multiselect = st.multiselect(label = "WildType",
-                                            options = wt_list)
-            HLA_alllele_multiselect = st.multiselect(label = "HLA allele group",
-                                                options = HLA_Allele_list)
-            Tumor_multiselect = st.multiselect(label = "Tumors", 
-                                            options = Tumor_list)
+    # with C2:
+    #     Wt_multiselect = st.multiselect(label = "WildType",
+    #                                     options = wt_list)
+    #     HLA_gene_multiselect = st.multiselect(label = "HLA gene",
+    #                                     options = HLA_gene_list)
+    #     Pos_type=st.radio(label = "Position type",
+    #                     options = ["Both","Anchor", "Non-anchor"],
+    #                     index=0)
+    
+    # with C3:
+    #     mutpos_multiselect = st.multiselect(label = "Mutation position",
+    #                                 options = Mutpos_list)
+    #     HLA_alllele_multiselect = st.multiselect(label = "HLA allele group",
+    #                                         options = HLA_Allele_list)
+    #     Length_radio = st.radio(label = "Length", 
+    #                     options = Length_list, 
+    #                     index = 0)
+
+
+    # with C4:
+    #     Tumor_multiselect = st.multiselect(label = "Tumors", 
+    #                                     options = Tumor_list) 
+    #     HLA_protein_multiselect = st.multiselect(label = "HLA protein",
+    #                                         options = HLA_protein_list)
+    #     # hla_nom = st.popover(label="HLA nomenclature", use_container_width=True )
+    #     # with hla_nom:
+    #     #     st.image("HLA_NOM.png") 
+    #     st.image("HLA_NOM.png")
+
+
+    C1, C2, C3, C4= st.columns(4)
+
+    with C1:
+        Neoag_multiselect = st.multiselect(label = "Neoantigens", 
+                                    options = Neoag_list)
+    with C2:
+        Wt_multiselect = st.multiselect(label = "WildType",
+                                        options = wt_list)
+    with C3:
+        mutpos_multiselect = st.multiselect(label = "Mutation position",
+                                    options = Mutpos_list)
         
-        with C3:
-            mutpos_multiselect = st.multiselect(label = "Mutation position",
-                                        options = Mutpos_list)
-            HLA_protein_multiselect = st.multiselect(label = "HLA protein",
-                                                options = HLA_protein_list)
+    with C1:
+        HLA_gene_multiselect = st.multiselect(label = "HLA gene",
+                                        options = HLA_gene_list)
+    with C2:
+        HLA_alllele_multiselect = st.multiselect(label = "HLA allele group",
+                                            options = HLA_Allele_list)
+    with C3:
+        HLA_protein_multiselect = st.multiselect(label = "HLA protein",
+                                            options = HLA_protein_list)
+    with C4:
+        st.image("HLA_NOM.png", width= 300)    
 
-        with C4:
+    c13, c23, c33 = st.columns([1,1,2])
+
+    with c13:
+        gene_multiselect = st.multiselect (label = "Gene Symbol",
+                                    options = Gene_list)
+    with c23:
+        Tumor_multiselect = st.multiselect(label = "Tumors", 
+                                        options = Tumor_list)
+    with c33:
+
+        C12, C22, C32, C42 = st.columns(4)
+
+        with C12:
             Neotype_list=st.radio(label = "Inmunogenecity",
-                            options = ["Both","Positive", "Negative"], 
-                            index=0)
+                    options = ["Both","Positive", "Negative"], 
+                    index=0)
+                    
+
+        with C22:
             Pos_type=st.radio(label = "Position type",
-                            options = ["Both","Anchor", "Non-anchor"],
-                            index=0)
-        with C5:
+                    options = ["Both","Anchor", "Non-anchor"],
+                    index=0)
+        with C32:
             Length_radio = st.radio(label = "Length", 
-                                    options = Length_list, 
-                                    index = 0)
+                            options = Length_list, 
+                            index = 0)
+
+
+       
+
+
+
+
+            
+
+
+
 
     #Ajuste para elementos vacios
 
@@ -572,31 +645,36 @@ with tab2:
     
     df_filtered["Select"] = 0
     
+    # with st.expander(label="Database", expanded=True):
+    st.subheader("ITSN database")
     df_filtered = st.data_editor(data= df_filtered,
-                                 column_config = {
-                                     "Select": st.column_config.CheckboxColumn("Select",
-                                                                               help="Select the files you want to see in the 'Neoantigen information' section", 
-                                                                               default=False),
+                                column_config = {
+                                    "Select": st.column_config.CheckboxColumn("Select",
+                                                                            help="Select the files you want to see in the 'Neoantigen information' section", 
+                                                                            default=False),
                                     "Author": None,
                                     "Paper": None,
                                     "HLA_GENE": None,
                                     "HLA_ALLELE_GROUP": None, 
                                     "HLA_PROTEIN": None,
-                                 },
-                                  column_order = ("Select", "Neoantigen", "WT", "NeoType", "mutPosition", "PositionType",  "Length", "HLA", "GeneSymbol", "Tumor"),
-                                  disabled=["Neoantigen", "WT", "NeoType", "mutPosition", "Length", "HLA", "GeneSymbol", "Tumor"],
-                                  hide_index=True,
-                                  use_container_width = True,
-                                  height = 600
+                                },
+                                column_order = ("Select", "Neoantigen", "WT", "NeoType", "mutPosition", "PositionType",  "Length", "HLA", "GeneSymbol", "Tumor"),
+                                disabled=["Neoantigen", "WT", "NeoType", "mutPosition", "Length", "HLA", "GeneSymbol", "Tumor"],
+                                hide_index=True,
+                                use_container_width = True,
+                                height = 400
                                     ) 
     
 
-with tab3:
+#with tab3:
+
+    st.subheader("Neoantigen information")
+
     df_Selected = df_filtered[df_filtered["Select"]==1]
 
 
     if df_Selected.empty:
-        st.caption("Please, select neoantigens in the database section")
+        st.caption("Please, select neoantigens in the database above to see more detailed information about particular neoantigens")
     #st.dataframe(df_Selected)
     for i in df_Selected.index:
             
@@ -608,7 +686,6 @@ with tab3:
         gene_s=df_Selected.loc[i,"GeneSymbol"]
         length_s= df_Selected.loc[i, "Length"]
         mut_pos_s = df_Selected.loc[i, "mutPosition"]
-
         #Genera lista a partir de string
         list_Neo = list(neo_s)
         list_Wt = list(wt_s)
@@ -650,8 +727,12 @@ with tab3:
                 st.write("🧬", gene_s )
                 st.write("**Link to  the author´s reference paper:** ")
                 st.page_link(page = paper_s, label = author_s, icon="📑")
+            
+            
 
-with tab4:
+
+
+with tab3:
     ITSNdb = pd.read_csv("https://raw.githubusercontent.com/elmerfer/ITSNdb/main/data/ITSNdb.csv", index_col=False)
     Val_ds = pd.read_csv("https://raw.githubusercontent.com/elmerfer/ITSNdb/main/data/Val_dataset.csv", index_col=False)
     TNB_ds = pd.read_csv("https://raw.githubusercontent.com/elmerfer/ITSNdb/main/data/TNB_dataset.csv", index_col=False)
@@ -757,7 +838,7 @@ with tab4:
         c51, c52 = st.columns([3,5])
 
         with c51:
-            st.image("proc.png")
+            st.image("Procedimineto_carga.png")
             st.caption("*Create a new column in each file to store the predictions. The name of this column should be “Prediction_result” and it must be the last column of each file.")
             st.caption("**The names of the csv files must be 'ITSNdb_pred.csv', 'Valds_pred.csv' and 'TNBds_pred.csv'")
             
@@ -843,7 +924,7 @@ with tab4:
     else:   
         st.success("All files were succefully uploaded")
 
-        
+        #st.write(correlation)
         
         st.header("ITSNdb")
 
@@ -1048,11 +1129,22 @@ with tab4:
         #df_ICB = pd.read_csv("TNB_dataset_MHC_results.csv")
 
         TNBds_pred_upload["pred_result"] = 0
-        for i in range(len(TNBds_pred_upload)):
-            if TNBds_pred_upload["Prediction_result"].iloc[i] >= dop_thr:
-                TNBds_pred_upload["pred_result"].iloc[i] = "Negative"
-            else: 
-                TNBds_pred_upload["pred_result"].iloc[i] = "Positive"
+
+
+
+        if pos_lb == 0:
+            for i in range(len(TNBds_pred_upload)):
+                if TNBds_pred_upload["Prediction_result"].iloc[i] < dop_thr:
+                    TNBds_pred_upload["pred_result"].iloc[i] = "Negative"
+                else: 
+                    TNBds_pred_upload["pred_result"].iloc[i] = "Positive"
+        if pos_lb == 1:
+            for i in range(len(TNBds_pred_upload)):
+                if TNBds_pred_upload["Prediction_result"].iloc[i] >= dop_thr:
+                    TNBds_pred_upload["pred_result"].iloc[i] = "Negative"
+                else: 
+                    TNBds_pred_upload["pred_result"].iloc[i] = "Positive"
+                    
 
         #st.dataframe(TNBds_pred_upload)
 
@@ -1148,7 +1240,7 @@ with tab4:
                                 line=dict(color="Black",width=2, dash="dot"))
 
         with g1: 
-            st.write("Wilcoxon p-value:")
+            
             st.plotly_chart(Scatter_plot, use_container_width=True)
 
         with g2:
@@ -1161,5 +1253,5 @@ with tab4:
                                         name = "NR",
                                         marker_color = 'lightseagreen'))
                 with st.expander(label=each, expanded=False):
-                    st.write(each,"'s wilcoxon p-value: ", pos_pred_cohort_responses_dict[each]["p_value"])
+                    st.write(each,"'s wilcoxon p-value: ", round(pos_pred_cohort_responses_dict[each]["p_value"], 4))
                     st.plotly_chart(box_plot, use_container_width=True)
