@@ -19,7 +19,7 @@ import plotly.graph_objects as go
 
 from streamlit_extras.metric_cards import style_metric_cards
 
-import Bio.PDB
+import bio.PDB
 from io import StringIO
 
 import urllib.request
