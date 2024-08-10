@@ -1054,9 +1054,16 @@ with tab2:
             lista_neoantigenos = df_ITSNdb_complete['Neoantigen'].tolist()
             #st.write(lista_genes)
             #lista de carpetas con predicciones 
-            lista_wt_predichos = os.listdir('Predictions/PDB_PAE/WT')
-            lista_neoag_predichos = os.listdir('Predictions/PDB_PAE/WT')
-            #st.write(lista_wt_predichos)
+            
+            genes_predichos_txt = 'Genes_predichos.txt'
+            with open(genes_predichos_txt, 'r') as f:
+                # Usamos list comprehension para leer cada línea y eliminar los saltos de línea
+                lista_wt_predichos = [linea.strip() for linea in f]
+            
+            
+            # lista_wt_predichos = os.listdir('Predictions/PDB_PAE/WT')
+            # lista_neoag_predichos = os.listdir('Predictions/PDB_PAE/WT')
+            # #st.write(lista_wt_predichos)
 
             lista_sin_predicción = []
             #Ubicar predicciones de wt faltantes
