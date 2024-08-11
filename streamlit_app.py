@@ -1,6 +1,8 @@
 
 #-----------------------------------------------------------------------------------------------------------------
 #   Librerias utilizadas
+
+#   Librerias utilizadas
 import streamlit as st
 from streamlit_extras.metric_cards import style_metric_cards
 
@@ -27,6 +29,31 @@ import py3Dmol
 
 from http.client import IncompleteRead
 
+# import streamlit as st
+# import pandas as pd
+# import numpy as np
+# from plotly.subplots import make_subplots
+
+# import json
+# import os
+
+# import roc_utils as ru
+# from sklearn import metrics
+# import scipy.stats as stats #test wilcoxon
+
+# import plotly.express as px
+# import plotly.graph_objects as go
+
+# from streamlit_extras.metric_cards import style_metric_cards
+
+# import Bio.PDB
+# from io import StringIO
+
+# import urllib.request
+# from stmol import showmol
+# import py3Dmol
+
+# from http.client import IncompleteRead
 # import PIL as pil
 # import json
 
@@ -37,6 +64,268 @@ from http.client import IncompleteRead
 
 # from stmol import showmol
 # import py3Dmol
+
+#///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#   FUNCIONES PROPIAS
+
+#   >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#   FUNCION GET_PDB_CA
+#Parametros
+    #Ruta archivo = string- cualquiera de los genes de la bd
+#Return
+    #dataframe
+
+# def GET_PDB_CA(ruta):
+    
+#     Atom_serial_number = []
+#     Atom_name = []
+#     Residue_Name = []
+#     X_orthogonal_coordinates = []
+#     Y_orthogonal_coordinates = []
+#     Z_orthogonal_coordinates = []
+#     B_factor = [] 
+
+#     with open(ruta, 'r') as pdb_file:
+#                 for linea in pdb_file:
+#                     if linea.startswith('ATOM') and linea[13:15] == 'CA':
+#                         Atom_serial_number.append(float(linea[6:11]))
+#                         atomname=str(linea[13:16])
+#                         Atom_name.append(atomname.strip()) #Strip elimina los espacios en blanco en eñ string
+#                         Residue_Name.append(str(linea[17:20]))
+#                         X_orthogonal_coordinates.append(float(linea[30:38]))
+#                         Y_orthogonal_coordinates.append(float(linea[38:46]))
+#                         Z_orthogonal_coordinates.append(float(linea[46:54]))
+#                         B_factor.append(float(linea[60:66]))
+                                
+#                 #DATAFRAME CON LOS VALORES DEL PDB- CA
+#                 df_pdb = pd.DataFrame({'Atom Serial Number': Atom_serial_number,
+#                                             'Atom Name': Atom_name,
+#                                             'Residue Name': Residue_Name,
+#                                             'X orthogonal coordinate': X_orthogonal_coordinates,
+#                                             'Y orthogonal coordinate': Y_orthogonal_coordinates,
+#                                             'Z orthogonal coordinate': Z_orthogonal_coordinates,
+#                                             'B factor': B_factor})
+#     return df_pdb
+
+
+def GET_PDB_CA(ruta):
+    
+    Atom_serial_number = []
+    Atom_name = []
+    Residue_Name = []
+    X_orthogonal_coordinates = []
+    Y_orthogonal_coordinates = []
+    Z_orthogonal_coordinates = []
+    B_factor = [] 
+
+
+    with urllib.request.urlopen(ruta) as response:
+        pdb_file_content = response.read().decode('utf-8').splitlines()
+    
+    for linea in pdb_file_content:
+        if linea.startswith('ATOM') and linea[13:15] == 'CA':
+            Atom_serial_number.append(float(linea[6:11]))
+            atomname = str(linea[13:16])
+            Atom_name.append(atomname.strip())
+            Residue_Name.append(str(linea[17:20]))
+            X_orthogonal_coordinates.append(float(linea[30:38]))
+            Y_orthogonal_coordinates.append(float(linea[38:46]))
+            Z_orthogonal_coordinates.append(float(linea[46:54]))
+            B_factor.append(float(linea[60:66]))
+    
+     # Crear un DataFrame con los datos extraídos
+    df_pdb = pd.DataFrame({
+        'Atom Serial Number': Atom_serial_number,
+        'Atom Name': Atom_name,
+        'Residue Name': Residue_Name,
+        'X orthogonal coordinate': X_orthogonal_coordinates,
+        'Y orthogonal coordinate': Y_orthogonal_coordinates,
+        'Z orthogonal coordinate': Z_orthogonal_coordinates,
+        'B factor': B_factor
+    })
+    return df_pdb
+#   >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+#   >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#   FUNCION GET_PLDDTS
+#Parametros
+    #pdb1 = dataframe con el primer pdb
+    #ref_1 = string con referencia al pdf anterior
+    #pdb2 = dataframe con el segundo pdb
+    #ref_2 = string con referencia al pdf anterior
+#Return
+    #fig_plddt
+
+def GET_PLDDTS(pdb_1, ref_1, pdb_2, ref_2):
+    fig_plddt = go.Figure()
+    fig_plddt.add_trace(go.Scatter( x=pdb_1.index,
+                                    y=pdb_1["B factor"],
+                                    name=(ref_1),
+                                    line=dict(color='#40e0d0')))
+    fig_plddt.add_trace(go.Scatter(x=pdb_2.index,
+                                    y=pdb_2["B factor"],
+                                    name=(ref_2),
+                                    line=dict(color='#db7093')))
+    return fig_plddt
+#   >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+#   >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#   FUNCION GET_PAE_DF
+#Parametros
+    #ruta al archivo .json
+#Return
+    #data frame con las distancias 
+# def GET_PAE_DF(ruta):
+#     with open(ruta, 'r') as json_file:
+#             file_mut=json_file
+#             data_mut=json.load(file_mut)
+#     df_pae=(pd.DataFrame(data_mut["distance"]))
+#     return df_pae
+
+
+# def GET_PAE_DF(url):
+#     # Abrir la URL y leer el contenido
+#     with urllib.request.urlopen(url) as response:
+#         # Decodificar el contenido y cargarlo como JSON
+#         data_mut = json.loads(response.read().decode('utf-8'))
+    
+#     # Convertir la sección "distance" en un DataFrame
+#     df_pae = pd.DataFrame(data_mut["distance"])
+#     return df_pae
+
+
+def GET_PAE_DF(url):
+    try:
+        # Intentar abrir la URL y leer el contenido
+        with urllib.request.urlopen(url) as response:
+            # Decodificar el contenido y cargarlo como JSON
+            data_mut = json.loads(response.read().decode('utf-8'))
+        
+        # Convertir la sección "distance" en un DataFrame
+        df_pae = pd.DataFrame(data_mut["distance"])
+        return df_pae
+
+    except:
+        df_pae = pd.DataFrame()
+        return df_pae
+#   >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+#   >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#   FUNCION GET_PAE_GRAPH
+#Parametros
+#   df_pae: dataframe con las distancias del pae
+#Return
+#   objeto fig_pae 
+
+def GET_PAE_GRAPH(df_pae):
+    fig_pae = go.Figure(data=go.Heatmap(
+                    z=df_pae, 
+                    colorscale="Rainbow"))
+    # Obtener la cantidad de filas y columnas del dataframe
+    # num_rows, num_cols = df_pae.shape
+    
+    # Ajustar el layout para hacer el heatmap cuadrado
+    fig_pae.update_layout(
+        width=500,  # Establecer el ancho deseado
+        height=500,  # Establecer la altura deseada
+        yaxis=dict(scaleanchor="x", scaleratio=1),
+        xaxis=dict(constrain='domain')
+        
+    )
+    return fig_pae
+#   >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+#   >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#   FUNCION GET_PAE_DIF
+#Parametros 
+#   df_1 
+#   df_2
+#return
+#   objeto fig_pae_dif
+
+def GET_PAE_DIF(df_1, df_2):
+    dif_pae = df_1 - df_2
+    fig_pae_dif = go.Figure(data=go.Heatmap(z=dif_pae, 
+                                            colorscale="RdBu")) 
+    fig_pae_dif.update_layout(
+        width=500,  # Establecer el ancho deseado
+        height=500,  # Establecer la altura deseada
+        yaxis=dict(scaleanchor="x", scaleratio=1),
+        xaxis=dict(constrain='domain')
+        
+    )
+    return fig_pae_dif
+#   >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+#///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#///////////////////////////////////////////////////////////////////////////////////////////////////////
+# def superimpose_proteins(p1, p2, silent=False):
+#     # Protein superposition
+#     # Thanks to Anders Steen Christensen for the code: https://gist.github.com/andersx/6354971
+#     pdb_parser = Bio.PDB.PDBParser()
+#     ref_structure = pdb_parser.get_structure("reference", p1) 
+#     sample_structure = pdb_parser.get_structure("sample", p2)
+
+#     # In case personalized results are loaded and there are various models, only the first is chosen
+#     # change the value manually if needed!
+#     ref_model = ref_structure[0]
+#     sample_model = sample_structure[0]
+
+#     ref_atoms = []
+#     sample_atoms = []
+
+#     for ref_chain in ref_model:
+#         for ref_res in ref_chain:
+#             ref_atoms.append(ref_res['CA'])
+
+#     for sample_chain in sample_model:
+#         for sample_res in sample_chain:
+#             sample_atoms.append(sample_res['CA'])
+
+#     # numpy works better so transforming
+#     ref_atoms = np.array(ref_atoms)
+#     sample_atoms = np.array(sample_atoms)
+
+#     super_imposer = Bio.PDB.Superimposer()
+#     super_imposer.set_atoms(ref_atoms, sample_atoms)
+#     super_imposer.apply(sample_structure.get_atoms())  # modifies th
+
+#     # Save the superimposed protein to a string
+#     io = Bio.PDB.PDBIO()
+#     io.set_structure(sample_structure)
+#     output_str = StringIO()
+#     io.save(output_str)
+#     pdb_content = output_str.getvalue()
+
+#     return pdb_content
+
+
+def superimpose_proteins(wt_pdb, mut_pdb):
+    pdb_parser = Bio.PDB.PDBParser()
+    ref_structure = pdb_parser.get_structure("reference", StringIO(wt_pdb))
+    sample_structure = pdb_parser.get_structure("sample", StringIO(mut_pdb))
+
+    ref_model = ref_structure[0]
+    sample_model = sample_structure[0]
+
+    ref_atoms = [atom for atom in ref_model.get_atoms() if atom.get_id() == 'CA']
+    sample_atoms = [atom for atom in sample_model.get_atoms() if atom.get_id() == 'CA']
+
+    super_imposer = Bio.PDB.Superimposer()
+    super_imposer.set_atoms(ref_atoms, sample_atoms)
+    super_imposer.apply(sample_structure.get_atoms())
+
+    io = Bio.PDB.PDBIO()
+    io.set_structure(sample_structure)
+    output_str = StringIO()
+    io.save(output_str)
+    pdb_content = output_str.getvalue()
+
+    return pdb_content
+#///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #-----------------------------------------------------------------------------------------------------------------
 #   Lectura de la base de datos
@@ -60,6 +349,11 @@ df_ITSNdb_complete["HLA_ALLELE_GROUP"] = HLAALLELO
 df_ITSNdb_complete["HLA_PROTEIN"] = HLAPROT
 
 #-----------------------------------------------------------------------------------------------------------------
+#   Lectura del archivo con info adicional de genes - ITSNdb_GENES.csv
+
+df_ITSNdb_GENES = pd.read_csv("ITSNdb_GENES.csv")
+
+#-----------------------------------------------------------------------------------------------------------------
 #   Set Up de la applicación
 st.set_page_config(
     page_title="ITSNdb app",
@@ -78,8 +372,26 @@ st.set_page_config(
 st.image("logo.png",
          width = 300)
 
+
+#-----------------------------------------------------------------------------------------------------------------
+# SideBar con logos
+
+with st.sidebar:
+    st.image("logo.png",
+         width = 150)
+    st.image("logo_fcefyn.png",
+         width = 150)
+    st.image("UNC_logo.png",
+         width = 150)
+    st.image("Logo_conicet.png",
+         width = 150)
+    st.image("LOGO DATALAB OK.png",
+         width = 150)
+    st.image("Copia de FPM_Logotipos_RGB-01.png",
+         width = 150) 
+
 #   TABS
-tab1, tab2, tab3 = st.tabs(["HOME", "DATABASE", "SOFTWARE VALIDATION"])
+tab1, tab2, tab3= st.tabs(["HOME", "DATABASE", "SOFTWARE VALIDATION"])
 
 #-----------------------------------------------------------------------------------------------------------------
 #   HOME
@@ -512,57 +824,58 @@ with tab2:
     #     #     st.image("HLA_NOM.png") 
     #     st.image("HLA_NOM.png")
 
+    with st.expander(label = '**Filters:** ',
+                      expanded = True):
+        C1, C2, C3, C4= st.columns(4)
 
-    C1, C2, C3, C4= st.columns(4)
+        with C1:
+            Neoag_multiselect = st.multiselect(label = "Neoantigens", 
+                                        options = Neoag_list)
+        with C2:
+            Wt_multiselect = st.multiselect(label = "WildType",
+                                            options = wt_list)
+        with C3:
+            mutpos_multiselect = st.multiselect(label = "Mutation position",
+                                        options = Mutpos_list)
+            
+        with C1:
+            HLA_gene_multiselect = st.multiselect(label = "HLA gene",
+                                            options = HLA_gene_list)
+        with C2:
+            HLA_alllele_multiselect = st.multiselect(label = "HLA allele group",
+                                                options = HLA_Allele_list)
+        with C3:
+            HLA_protein_multiselect = st.multiselect(label = "HLA protein",
+                                                options = HLA_protein_list)
+        with C4:
+            st.image("HLA_NOM.png", width= 300)    
 
-    with C1:
-        Neoag_multiselect = st.multiselect(label = "Neoantigens", 
-                                    options = Neoag_list)
-    with C2:
-        Wt_multiselect = st.multiselect(label = "WildType",
-                                        options = wt_list)
-    with C3:
-        mutpos_multiselect = st.multiselect(label = "Mutation position",
-                                    options = Mutpos_list)
-        
-    with C1:
-        HLA_gene_multiselect = st.multiselect(label = "HLA gene",
-                                        options = HLA_gene_list)
-    with C2:
-        HLA_alllele_multiselect = st.multiselect(label = "HLA allele group",
-                                            options = HLA_Allele_list)
-    with C3:
-        HLA_protein_multiselect = st.multiselect(label = "HLA protein",
-                                            options = HLA_protein_list)
-    with C4:
-        st.image("HLA_NOM.png", width= 300)    
+        c13, c23, c33 = st.columns([1,1,2])
 
-    c13, c23, c33 = st.columns([1,1,2])
+        with c13:
+            gene_multiselect = st.multiselect (label = "Gene Symbol",
+                                        options = Gene_list)
+        with c23:
+            Tumor_multiselect = st.multiselect(label = "Tumors", 
+                                            options = Tumor_list)
+        with c33:
 
-    with c13:
-        gene_multiselect = st.multiselect (label = "Gene Symbol",
-                                    options = Gene_list)
-    with c23:
-        Tumor_multiselect = st.multiselect(label = "Tumors", 
-                                        options = Tumor_list)
-    with c33:
+            C12, C22, C32, C42 = st.columns(4)
 
-        C12, C22, C32, C42 = st.columns(4)
+            with C12:
+                Neotype_list=st.radio(label = "Inmunogenecity",
+                        options = ["Both","Positive", "Negative"], 
+                        index=0)
+                        
 
-        with C12:
-            Neotype_list=st.radio(label = "Inmunogenecity",
-                    options = ["Both","Positive", "Negative"], 
-                    index=0)
-                    
-
-        with C22:
-            Pos_type=st.radio(label = "Position type",
-                    options = ["Both","Anchor", "Non-anchor"],
-                    index=0)
-        with C32:
-            Length_radio = st.radio(label = "Length", 
-                            options = Length_list, 
-                            index = 0)
+            with C22:
+                Pos_type=st.radio(label = "Position type",
+                        options = ["Both","Anchor", "Non-anchor"],
+                        index=0)
+            with C32:
+                Length_radio = st.radio(label = "Length", 
+                                options = Length_list, 
+                                index = 0)
 
 
        
@@ -653,7 +966,7 @@ with tab2:
                                      & df_ITSNdb_complete["mutPosition"].isin(mutpos_sel)
                                      & df_ITSNdb_complete["PositionType"].isin(Pos_type_sel)]
 
-    st.write("   ")
+    #st.write("   ")
     
     df_filtered["Select"] = 0
     
@@ -733,18 +1046,147 @@ with tab2:
                 st.dataframe(df_compared_mut)
                 
 
-
             with t3:
-                st.write(" **Gene:** ")
-                st.write("🧬", gene_s )
+                #URL gencard
+                url_gc_ic = 'https://www.genecards.org/cgi-bin/carddisp.pl?gene='
+                url_up_ic = 'https://www.uniprot.org/uniprotkb/'
+                #gencard name
+                genecard_id = ''
+                lista_genes = df_ITSNdb_GENES['GeneSymbol'].tolist()
+                lista_genescard =df_ITSNdb_GENES['Gene_Card'].tolist()
+                lista_unitprot=df_ITSNdb_GENES['Uniprot_code'].tolist()
+                for gen in range(0, len(lista_genes)):
+                    if gene_s == lista_genes[gen]:
+                        genecard_id = lista_genescard[gen]
+                        unitprot_id = lista_unitprot[gen]
+                url_gc = url_gc_ic + genecard_id.strip()
+                url_up = url_up_ic + unitprot_id.strip()
+                
+                label1 = ('GeneCard: ' + genecard_id)
+                label2 = ('UniProt: '+ unitprot_id)
+
+                st.write(" **Gene:** ", gene_s)
+                st.page_link(page = url_gc, label = label1, icon="🧬")              
+                st.page_link(page = url_up, label = label2, icon="🔬")                        
                 st.write("**Link to  the author´s reference paper:** ")
                 st.page_link(page = paper_s, label = author_s, icon="📑")
             
+            # #EXTRACCIÓN DE LOS DATOS DEL REGISTRO SELECCIONADO            
+            # neo_s2=df_Selected_2.loc[i,"Neoantigen"]
+            # wt_s2=df_Selected_2.loc[i,"WT"]
+            # gene_s2=df_Selected_2.loc[i,"GeneSymbol"]
+        
+            #lista de genes en la base de datos
+            lista_genes = df_ITSNdb_complete['GeneSymbol'].tolist()
+            lista_neoantigenos = df_ITSNdb_complete['Neoantigen'].tolist()
+            #st.write(lista_genes)
+            #lista de carpetas con predicciones 
             
+            genes_predichos_txt = 'Genes_predichos.txt'
+            with open(genes_predichos_txt, 'r') as f:
+                # Usamos list comprehension para leer cada línea y eliminar los saltos de línea
+                lista_wt_predichos = [linea.strip() for linea in f]
+            
+            
+            # lista_wt_predichos = os.listdir('Predictions/PDB_PAE/WT')
+            # lista_neoag_predichos = os.listdir('Predictions/PDB_PAE/WT')
+            # #st.write(lista_wt_predichos)
+
+            lista_sin_predicción = []
+            #Ubicar predicciones de wt faltantes
+            for gen in lista_genes:
+                gen_nuevo = gen.lower()+'_wt'
+                if gen_nuevo not in lista_wt_predichos:
+                    lista_sin_predicción.append(gen)
+            
+            #generar rutas a los archivos.lower()+'_'
+            path_pdb_wt_git = 'https://raw.githubusercontent.com/roflesia/ITSN_App/main/PDB/WT/'
+            path_pdb_mut_git = 'https://raw.githubusercontent.com/roflesia/ITSN_App/main/PDB/MUT/'
+            
+            path_pae_wt_git = 'https://bitbucket.org/itsn_app/itsn_app/raw/main/PAE_WT/'
+            path_pae_mut_git = 'https://bitbucket.org/itsn_app/itsn_app/raw/main/PAE_MUT/'
 
 
+        
+            gen_minu = gene_s.lower()
+            neoag_minu = neo_s.lower()
+                    
 
-with tab3:
+            if gene_s in lista_sin_predicción:
+                st.write("This Neoantigen has no prediction yet")
+            else:
+                pred_result = st.toggle("Show 3d prediction", key=gene_s+neo_s+'toggle')
+                if pred_result:
+
+                    path_pdb_wt = path_pdb_wt_git + gen_minu + '_wt.pdb' 
+                    path_pdb_mut = path_pdb_mut_git + gen_minu + '_' + neoag_minu + '.pdb'
+                    df_pdb_wt = GET_PDB_CA(path_pdb_wt)
+                    df_pdb_mut = GET_PDB_CA(path_pdb_mut)
+
+                    path_pae_wt = path_pae_wt_git + gen_minu + '_wt.json' 
+                    path_pae_mut = path_pae_mut_git + gen_minu + '_' + neoag_minu + '.json'
+                    df_pae_wt = GET_PAE_DF(path_pae_wt)
+                    
+
+                    too_big = False
+                    if df_pae_wt.empty:
+                        too_big = True
+                        st.write("muy grande")
+                    
+                    if not too_big:
+                        df_pae_mut = GET_PAE_DF(path_pae_mut)
+
+                    
+                    with urllib.request.urlopen(path_pdb_wt) as response:
+                            wt_pdb = response.read().decode('utf-8')
+                    with urllib.request.urlopen(path_pdb_mut) as response:
+                            mut_pdb = response.read().decode('utf-8')
+                    sup_pdb =  superimpose_proteins(wt_pdb, mut_pdb)
+                    
+                    ps=st.radio(label= "Pred", options=["Wildtype vs. Mutation comparative", "Mutation results", "Wildtype results"], index=0, key=gene_s+neo_s, horizontal=True, captions=None, label_visibility="collapsed")                              
+             
+                    view_3d = py3Dmol.view()                    
+                    if ps == "Wildtype vs. Mutation comparative":
+                        if not too_big:
+                            fig_pae = GET_PAE_DIF(df_pae_wt, df_pae_mut)
+                                                
+                        view_3d.addModel(wt_pdb, 'pdb')
+                        view_3d.setStyle({'model': 0}, {"cartoon": {'color': '0x51adbe'}})  # Modelo 0 con color azul
+                        view_3d.addModel(sup_pdb, 'pdb')
+                        view_3d.setStyle({'model': 1}, {"cartoon": {'color': '0xc4ffb2'}})  # Modelo 0 con color azul
+
+                    elif ps == "Mutation results":
+                        if not too_big:
+                            fig_pae = GET_PAE_GRAPH(df_pae_mut)
+                        
+                        view_3d.addModel(sup_pdb, 'pdb')
+                        view_3d.setStyle({'model': 0}, {"cartoon": {'color': '0xc4ffb2'}})  # Modelo 0 con color azul
+                    
+                    else:
+                        if not too_big:
+                            fig_pae = GET_PAE_GRAPH(df_pae_wt)
+                        
+                        view_3d.addModel(wt_pdb, 'pdb')
+                        view_3d.setStyle({'model': 0}, {"cartoon": {'color': '0x51adbe'}})  # Modelo 0 con color azul
+
+                    # Configuraciones de vista
+                    view_3d.spin(True)
+                    view_3d.zoomTo()
+
+                    l1, l2 = st.columns(2)
+                    with l1:
+                        showmol(view_3d)
+                    with l2:
+                        if not too_big:
+                            st.plotly_chart(fig_pae)
+                        else:
+                            st.write('pesa mucho')
+                    ref_wt = "WildType"
+                    ref_mut = "Mutation"
+                    fig_plddt = GET_PLDDTS(df_pdb_wt, ref_wt, df_pdb_mut, ref_mut)
+                    st.plotly_chart(fig_plddt) 
+
+with tab3:    
     ITSNdb = pd.read_csv("https://raw.githubusercontent.com/elmerfer/ITSNdb/main/data/ITSNdb.csv", index_col=False)
     Val_ds = pd.read_csv("https://raw.githubusercontent.com/elmerfer/ITSNdb/main/data/Val_dataset.csv", index_col=False)
     TNB_ds = pd.read_csv("https://raw.githubusercontent.com/elmerfer/ITSNdb/main/data/TNB_dataset.csv", index_col=False)
