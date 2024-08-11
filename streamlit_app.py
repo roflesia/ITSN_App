@@ -18,7 +18,7 @@ import scipy.stats as stats #test wilcoxon
 import json
 import os
 
-import bio.PDB
+import biopython.PDB
 from io import StringIO
 
 import urllib.request
