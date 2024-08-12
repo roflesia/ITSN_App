@@ -1159,6 +1159,8 @@ with tab2:
                     if not too_big:
                         df_pae_mut = GET_PAE_DF(path_pae_mut)
 
+                    genes_muy_pesados = ['KMT2C', 'DYNC1H1', 'HUWE1', 'ALMS1', 'UTRN']
+
                     
                     with urllib.request.urlopen(path_pdb_wt) as response:
                             wt_pdb = response.read().decode('utf-8')
@@ -1205,50 +1207,50 @@ with tab2:
                         else:
                             st.write('pesa mucho')
 
-                    #PAE FROM ZIP
-                    path_zip_wt = 'https://github.com/roflesia/ITSN_App/raw/main//PAE/PAE_WT_ZIP/'
-                    path_zip_mut = 'https://github.com/roflesia/ITSN_App/raw/main//PAE/PAE_MUT_ZIP/'
+                    # #PAE FROM ZIP
+                    # path_zip_wt = 'https://github.com/roflesia/ITSN_App/raw/main//PAE/PAE_WT_ZIP/'
+                    # path_zip_mut = 'https://github.com/roflesia/ITSN_App/raw/main//PAE/PAE_MUT_ZIP/'
 
-                    path_zip_wt_c = path_zip_wt + gen_minu + '_wt.zip'
-                    path_zip_mut_c = path_zip_mut + gen_minu + '_' + neoag_minu + '.zip'
+                    # path_zip_wt_c = path_zip_wt + gen_minu + '_wt.zip'
+                    # path_zip_mut_c = path_zip_mut + gen_minu + '_' + neoag_minu + '.zip'
 
-                    st.write(path_zip_mut_c)
-                    st.write('🚩 1. Leyendo archivo .zip desde github')
-                    response = requests.get(path_zip_wt_c)
-                    if response.status_code == 200:
-                        zip_file = BytesIO(response.content)
-                        st.write("✅")
-                        zip_content = response.content
+                    # st.write(path_zip_mut_c)
+                    # st.write('🚩 1. Leyendo archivo .zip desde github')
+                    # response = requests.get(path_zip_wt_c)
+                    # if response.status_code == 200:
+                    #     zip_file = BytesIO(response.content)
+                    #     st.write("✅")
+                    #     zip_content = response.content
                         
-                        st.download_button(
-                                label="Descargar archivo ZIP",
-                                data=zip_content,
-                                file_name="archivo.zip",
-                                mime="application/zip")
-                        with zipfile.ZipFile(zip_file) as zip_file:
-                            # Lista de nombres de archivos en el zip
-                            file_names = zip_file.namelist()
-                            #st.write(file_names)
+                    #     st.download_button(
+                    #             label="Descargar archivo ZIP",
+                    #             data=zip_content,
+                    #             file_name="archivo.zip",
+                    #             mime="application/zip")
+                    #     with zipfile.ZipFile(zip_file) as zip_file:
+                    #         # Lista de nombres de archivos en el zip
+                    #         file_names = zip_file.namelist()
+                    #         #st.write(file_names)
                         
-                            with zip_file.open(file_names[0]) as extracted_file:
-                                # Lee el contenido del archivo JSON
-                                st.write('🚩2. Leyendo contenido del .json')
-                                content = json.load(extracted_file)
-                                st.write("✅")
-                                # Muestra el contenido del archivo JSON en Streamlit
-                            #st.json(content)
+                    #         with zip_file.open(file_names[0]) as extracted_file:
+                    #             # Lee el contenido del archivo JSON
+                    #             st.write('🚩2. Leyendo contenido del .json')
+                    #             content = json.load(extracted_file)
+                    #             st.write("✅")
+                    #             # Muestra el contenido del archivo JSON en Streamlit
+                    #         #st.json(content)
                                 
-                            st.write('🚩3. Convierte el .json en un dataframe ')     
-                            df_pae=(pd.DataFrame(content["distance"]))
-                            st.write("✅")
-                            st.write('🚩 4. genera el objeto del heatmap del pae')    
-                            fig_pae_json = GET_PAE_GRAPH_json(content["distance"])
-                            st.write("✅")
-                            st.write('🚩5. Muestra el grafico') 
-                            st.plotly_chart(fig_pae_json)
-                            st.write("✅")
-                    else:
-                        st.error("No se pudo descargar el archivo zip desde GitHub.")
+                    #         st.write('🚩3. Convierte el .json en un dataframe ')     
+                    #         df_pae=(pd.DataFrame(content["distance"]))
+                    #         st.write("✅")
+                    #         st.write('🚩 4. genera el objeto del heatmap del pae')    
+                    #         fig_pae_json = GET_PAE_GRAPH_json(content["distance"])
+                    #         st.write("✅")
+                    #         st.write('🚩5. Muestra el grafico') 
+                    #         st.plotly_chart(fig_pae_json)
+                    #         st.write("✅")
+                    # else:
+                    #     st.error("No se pudo descargar el archivo zip desde GitHub.")
 
 
                     ref_wt = "WildType"
