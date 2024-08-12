@@ -1078,17 +1078,23 @@ with tab2:
                 lista_genes = df_ITSNdb_GENES['GeneSymbol'].tolist()
                 lista_genescard =df_ITSNdb_GENES['Gene_Card'].tolist()
                 lista_unitprot=df_ITSNdb_GENES['Uniprot_code'].tolist()
+                lista_seq_len=df_ITSNdb_GENES['Seq_Lenght'].tolist()
                 for gen in range(0, len(lista_genes)):
                     if gene_s == lista_genes[gen]:
                         genecard_id = lista_genescard[gen]
                         unitprot_id = lista_unitprot[gen]
+                        seq_len =lista_seq_len[gen]
                 url_gc = url_gc_ic + genecard_id.strip()
                 url_up = url_up_ic + unitprot_id.strip()
                 
                 label1 = ('GeneCard: ' + genecard_id)
                 label2 = ('UniProt: '+ unitprot_id)
 
-                st.write(" **Gene:** ", gene_s)
+                p1, p2 = st.columns([1,2])
+                with p1:
+                    st.write(" **Gene:** ", gene_s)
+                with p2:
+                    st.write("Lenght: ", int(seq_len))
                 st.page_link(page = url_gc, label = label1, icon="🧬")              
                 st.page_link(page = url_up, label = label2, icon="🔬")                        
                 st.write("**Link to  the author´s reference paper:** ")
@@ -1110,7 +1116,7 @@ with tab2:
                 # Usamos list comprehension para leer cada línea y eliminar los saltos de línea
                 lista_wt_predichos = [linea.strip() for linea in f]
             
-            
+            genes_muy_pesados = ['KMT2C', 'DYNC1H1', 'HUWE1', 'ALMS1', 'UTRN']
             # lista_wt_predichos = os.listdir('Predictions/PDB_PAE/WT')
             # lista_neoag_predichos = os.listdir('Predictions/PDB_PAE/WT')
             # #st.write(lista_wt_predichos)
@@ -1128,19 +1134,20 @@ with tab2:
             
             path_pae_wt_git = 'https://bitbucket.org/itsn_app/itsn_app/raw/main/PAE_WT/'
             path_pae_mut_git = 'https://bitbucket.org/itsn_app/itsn_app/raw/main/PAE_MUT/'
-
-
-        
+                    
             gen_minu = gene_s.lower()
             neoag_minu = neo_s.lower()
                     
-
             if gene_s in lista_sin_predicción:
-                st.write("This Neoantigen has no prediction yet")
+                st.caption("This Neoantigen has no prediction yet")
             else:
                 pred_result = st.toggle("Show 3d prediction", key=gene_s+neo_s+'toggle')
+                
                 if pred_result:
-
+                    if seq_len > 3000:
+                        st.info('Sequences longer than 2000 AA are too big to upload some graphs', icon="ℹ️")
+                    elif seq_len > 1000:
+                        st.info('Larger sequences might take a moment to load', icon="ℹ️")
                     path_pdb_wt = path_pdb_wt_git + gen_minu + '_wt.pdb' 
                     path_pdb_mut = path_pdb_mut_git + gen_minu + '_' + neoag_minu + '.pdb'
                     df_pdb_wt = GET_PDB_CA(path_pdb_wt)
@@ -1160,7 +1167,6 @@ with tab2:
                         df_pae_mut = GET_PAE_DF(path_pae_mut)
 
                     genes_muy_pesados = ['KMT2C', 'DYNC1H1', 'HUWE1', 'ALMS1', 'UTRN']
-
                     
                     with urllib.request.urlopen(path_pdb_wt) as response:
                             wt_pdb = response.read().decode('utf-8')
@@ -1202,55 +1208,15 @@ with tab2:
                     with l1:
                         showmol(view_3d)
                     with l2:
-                        if not too_big:
+                        if not too_big and gene_s not in genes_muy_pesados:
                             st.plotly_chart(fig_pae)
                         else:
                             st.write('pesa mucho')
 
-                    # #PAE FROM ZIP
-                    # path_zip_wt = 'https://github.com/roflesia/ITSN_App/raw/main//PAE/PAE_WT_ZIP/'
-                    # path_zip_mut = 'https://github.com/roflesia/ITSN_App/raw/main//PAE/PAE_MUT_ZIP/'
 
-                    # path_zip_wt_c = path_zip_wt + gen_minu + '_wt.zip'
-                    # path_zip_mut_c = path_zip_mut + gen_minu + '_' + neoag_minu + '.zip'
 
-                    # st.write(path_zip_mut_c)
-                    # st.write('🚩 1. Leyendo archivo .zip desde github')
-                    # response = requests.get(path_zip_wt_c)
-                    # if response.status_code == 200:
-                    #     zip_file = BytesIO(response.content)
-                    #     st.write("✅")
-                    #     zip_content = response.content
-                        
-                    #     st.download_button(
-                    #             label="Descargar archivo ZIP",
-                    #             data=zip_content,
-                    #             file_name="archivo.zip",
-                    #             mime="application/zip")
-                    #     with zipfile.ZipFile(zip_file) as zip_file:
-                    #         # Lista de nombres de archivos en el zip
-                    #         file_names = zip_file.namelist()
-                    #         #st.write(file_names)
-                        
-                    #         with zip_file.open(file_names[0]) as extracted_file:
-                    #             # Lee el contenido del archivo JSON
-                    #             st.write('🚩2. Leyendo contenido del .json')
-                    #             content = json.load(extracted_file)
-                    #             st.write("✅")
-                    #             # Muestra el contenido del archivo JSON en Streamlit
-                    #         #st.json(content)
-                                
-                    #         st.write('🚩3. Convierte el .json en un dataframe ')     
-                    #         df_pae=(pd.DataFrame(content["distance"]))
-                    #         st.write("✅")
-                    #         st.write('🚩 4. genera el objeto del heatmap del pae')    
-                    #         fig_pae_json = GET_PAE_GRAPH_json(content["distance"])
-                    #         st.write("✅")
-                    #         st.write('🚩5. Muestra el grafico') 
-                    #         st.plotly_chart(fig_pae_json)
-                    #         st.write("✅")
-                    # else:
-                    #     st.error("No se pudo descargar el archivo zip desde GitHub.")
+
+
 
 
                     ref_wt = "WildType"
