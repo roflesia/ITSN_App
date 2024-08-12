@@ -1,6 +1,5 @@
 
 #-----------------------------------------------------------------------------------------------------------------
-#   Librerias utilizadas
 
 #   Librerias utilizadas
 import streamlit as st
@@ -28,6 +27,13 @@ from stmol import showmol
 import py3Dmol
 
 from http.client import IncompleteRead
+
+#nuevas 12-08
+import zipfile
+import io   
+import requests
+from io import BytesIO
+
 
 # import streamlit as st
 # import pandas as pd
@@ -235,6 +241,23 @@ def GET_PAE_GRAPH(df_pae):
         
     )
     return fig_pae
+
+def GET_PAE_GRAPH_json(distance_matrix):
+    fig_pae = go.Figure(data=go.Heatmap(
+        z=distance_matrix,
+        colorscale="Rainbow"
+    ))
+    
+    # Ajustar el layout para hacer el heatmap cuadrado
+    fig_pae.update_layout(
+        width=500,  # Establecer el ancho deseado
+        height=500,  # Establecer la altura deseada
+        yaxis=dict(scaleanchor="x", scaleratio=1),
+        xaxis=dict(constrain='domain')
+    )
+    return fig_pae
+
+
 #   >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 #   >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1181,6 +1204,53 @@ with tab2:
                             st.plotly_chart(fig_pae)
                         else:
                             st.write('pesa mucho')
+
+                    #PAE FROM ZIP
+                    path_zip_wt = 'https://github.com/roflesia/ITSN_App/raw/main//PAE/PAE_WT_ZIP/'
+                    path_zip_mut = 'https://github.com/roflesia/ITSN_App/raw/main//PAE/PAE_MUT_ZIP/'
+
+                    path_zip_wt_c = path_zip_wt + gen_minu + '_wt.zip'
+                    path_zip_mut_c = path_zip_mut + gen_minu + '_' + neoag_minu + '.zip'
+
+                    st.write(path_zip_mut_c)
+                    st.write('🚩 1. Leyendo archivo .zip desde github')
+                    response = requests.get(path_zip_wt_c)
+                    if response.status_code == 200:
+                        zip_file = BytesIO(response.content)
+                        st.write("✅")
+                        zip_content = response.content
+                        
+                        st.download_button(
+                                label="Descargar archivo ZIP",
+                                data=zip_content,
+                                file_name="archivo.zip",
+                                mime="application/zip")
+                        with zipfile.ZipFile(zip_file) as zip_file:
+                            # Lista de nombres de archivos en el zip
+                            file_names = zip_file.namelist()
+                            #st.write(file_names)
+                        
+                            with zip_file.open(file_names[0]) as extracted_file:
+                                # Lee el contenido del archivo JSON
+                                st.write('🚩2. Leyendo contenido del .json')
+                                content = json.load(extracted_file)
+                                st.write("✅")
+                                # Muestra el contenido del archivo JSON en Streamlit
+                            #st.json(content)
+                                
+                            st.write('🚩3. Convierte el .json en un dataframe ')     
+                            df_pae=(pd.DataFrame(content["distance"]))
+                            st.write("✅")
+                            st.write('🚩 4. genera el objeto del heatmap del pae')    
+                            fig_pae_json = GET_PAE_GRAPH_json(content["distance"])
+                            st.write("✅")
+                            st.write('🚩5. Muestra el grafico') 
+                            st.plotly_chart(fig_pae_json)
+                            st.write("✅")
+                    else:
+                        st.error("No se pudo descargar el archivo zip desde GitHub.")
+
+
                     ref_wt = "WildType"
                     ref_mut = "Mutation"
                     fig_plddt = GET_PLDDTS(df_pdb_wt, ref_wt, df_pdb_mut, ref_mut)
