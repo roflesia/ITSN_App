@@ -1127,6 +1127,7 @@ with tab2:
     df_Selected = df_filtered[df_filtered["Select"]==1]
 
 
+
     if df_Selected.empty:
         st.caption("Please, select neoantigens in the database above to see more detailed information about particular neoantigens")
     #st.dataframe(df_Selected)
