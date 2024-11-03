@@ -1,13 +1,17 @@
 
-# HOLA!! :)
+# The ITSNdb app
+A Streamlit web based application was developed to enhance accessibility and exploration of the neoantignes peptides as well as their wildtype counterpart and predicted protein structures.
+The developed web application consists of three main sections:
+The Home section provides an overview of ITSNdb along with statistical visualisations displaying all the information related to the stored peptides such as the amount, classification types, HLA
+information, frequency and tumor types.
+DataBase exploration: By different filters individual peptides can be explored in detail, providing wild-type and mutated peptide sequence, mutation position and localization type, gene accession,
+tumor type, publication source and HLA characteristics. Then by mean of an interactive view, 3D visualization tool allows for side-by-side comparisons of wildtype and mutated predicted 3D protein
+structures along with the ir pLDDT confidence metrics, superimposition capabilities and comparative metrics.
+The Software Validation tab allows users to upload their immunogenicity predictions based on three datasets (ITSNdb, validation and neopeptides from immunotherapy cohorts). They can evaluate
+performance using metrics like ROC curves, F1 scores, and confusion matrices, supporting in-depth analysis to improve the accuracy of immunogenicity prediction models.
 
-Para acceder a la última versión de la aplicación utilizar el siguiente link:
+The developed web application effectively addresses the need for a comprehensive tool to explore neoantigens and assess immunogenicity predictions. By providing an intuitive interface and advanced
+visualization capabilities, it enhances the understanding of neoantigen characteristics and supports personalized immunotherapy approaches.
+The importance of this project is clear in its contribution to cancer immunotherapy, offering a platform to improve the accuracy and reliability of immunogenicity prediction models
 
-https://itsndb.streamlit.app/ 
-
-Notas:
-
-1. La aplicación no está finalizada
-2. Puede darse el caso de que, luego de un tiempo de inactividad, la aplicación entre en modo sleep
-
-Saludos! :)
+*You can access the ITSNdb AppWeb by following the next link: https://itsndb.streamlit.app/*
