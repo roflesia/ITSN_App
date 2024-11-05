@@ -1494,13 +1494,14 @@ with tab2:
                 st.plotly_chart(fig_plddt)
 
                 st.header('AA distance')
+                
                 u1, u2, u3 = st.columns([1,1,3])
                 with u1:
                     st.metric(label = ("TM Score:"),
-                        value = tmscore)
+                        value = round(tmscore, 3))
                 with u2:
                     st.metric(label = ("RMSD:"),
-                        value = (str(rmsd) + " Å"))
+                        value = (str(round(rmsd,3)) + " Å"))
                                  
                 st.plotly_chart(distancias)
                 
@@ -1520,8 +1521,7 @@ with tab2:
                     response = requests.get(url)
                     response.raise_for_status()  # Asegura que no haya errores en la descarga
                     return response.content
-                path_fasta_wt = path_fasta_wt_git + gene_s + '_wt.fasta' 
-                path_fasta_mut = path_fasta_mut_git + gene_s + '_' + neo_s + '.fasta'
+
                 dl1, dl2, dl3, dl4, dl5, dl6 = st.columns(6)
                 with dl1:
                     # Botón de descarga para archivo .pdb
