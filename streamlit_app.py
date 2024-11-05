@@ -22,6 +22,7 @@ import os
 import Bio.PDB
 from Bio.PDB import PDBParser
 from io import StringIO
+from Bio.PDB import PDBParser, Superimposer, PDBIO, Select
 
 import urllib.request
 from stmol import showmol
@@ -367,6 +368,56 @@ def superimpose_proteins(wt_pdb, mut_pdb):
     pdb_content = output_str.getvalue()
 
     return pdb_content
+
+
+def superimpose_pdb_with_threshold(wt_url, pred_url):
+    """
+    Superpone dos estructuras PDB basadas en átomos CA con un pLDDT mayor a 'threshold' 
+    y muestra la estructura alineada en Streamlit.
+
+    :param wt_url: URL del archivo PDB de la estructura experimental.
+    :param pred_url: URL del archivo PDB de la estructura predicha.
+    :param threshold: Umbral de pLDDT para seleccionar residuos.
+    :return: String con el contenido PDB de la estructura superimpuesta.
+    """
+    threshold = 70
+    # Cargar las estructuras PDB desde las URLs
+    parser = PDBParser(QUIET=True)
+    with urllib.request.urlopen(wt_url) as response:
+        wt_pdb_data = response.read().decode('utf-8')
+        structure_exp = parser.get_structure('exp', StringIO(wt_pdb_data))
+
+    with urllib.request.urlopen(pred_url) as response:
+        pred_pdb_data = response.read().decode('utf-8')
+        structure_pred = parser.get_structure('pred', StringIO(pred_pdb_data))
+
+    # Obtener átomos CA con el umbral de pLDDT
+    exp_atoms, pred_atoms = [], []
+    for pred_chain in structure_pred.get_chains():
+        for pred_res in pred_chain.get_residues():
+            if pred_res.has_id('CA') and pred_res['CA'].get_bfactor() >= threshold:
+                pred_res_id = pred_res.get_id()[1]
+                for exp_chain in structure_exp.get_chains():
+                    for exp_res in exp_chain.get_residues():
+                        exp_res_id = exp_res.get_id()[1]
+                        if exp_res_id == pred_res_id and exp_res.has_id('CA'):
+                            exp_atoms.append(exp_res['CA'])
+                            pred_atoms.append(pred_res['CA'])
+                            break
+
+    # Realizar la superposición
+    super_imposer = Superimposer()
+    super_imposer.set_atoms(exp_atoms, pred_atoms)
+    super_imposer.apply(structure_pred.get_atoms())
+
+    # Guardar la estructura en un StringIO y devolver su contenido
+    io = PDBIO()
+    io.set_structure(structure_pred)
+    output_str = StringIO()
+    io.save(output_str)
+    pdb_content = output_str.getvalue()
+
+    return pdb_content
 #///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -415,15 +466,17 @@ def aadistance(reference_pdb, sample_pdb, mutacion_posicion):
         line=dict(color="red", width=2, dash="dash")  # Línea roja discontinua
     )
     
-
-    
-    fig.update_layout(title="Distancias Euclidianas entre átomos CA",
-                      xaxis_title="Índice del átomo CA",
-                      yaxis_title="Distancia Euclidiana",
+   
+    fig.update_layout(title="Euclidean distances between CA atoms",
+                      xaxis_title="CA atom index",
+                      yaxis_title="Euclidean distance",
                       showlegend=False)
-    
+    # Calcular TM-score y RMSD global
+    d0_ltarget = 1.24 * np.cbrt(len(ref_atoms) - 15) - 1.8
+    tm_score = np.sum(1 / (1 + (distancia_euclidiana / d0_ltarget) ** 2)) / len(ref_atoms)
+    rmsd_global = distancia_euclidiana.mean()
 
-    return fig
+    return fig, tm_score, rmsd_global
 #///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 def encontrar_posicion_mutacion(secuencia_completa, neoantigeno, posicion_mutada):
@@ -450,6 +503,7 @@ def encontrar_posicion_mutacion(secuencia_completa, neoantigeno, posicion_mutada
     posicion_mutacion = indice_neoantigeno + posicion_mutada
 
     return posicion_mutacion
+
 
 
 
@@ -1173,7 +1227,10 @@ with tab2:
         
         path_pae_wt_git = 'https://bitbucket.org/itsn_app/itsn_app/raw/main/PAE_WT/'
         path_pae_mut_git = 'https://bitbucket.org/itsn_app/itsn_app/raw/main/PAE_MUT/'
-                
+
+        path_fasta_wt_git = 'https://raw.githubusercontent.com/roflesia/ITSN_App/main/WT_FASTA/'
+        path_fasta_mut_git = 'https://raw.githubusercontent.com/roflesia/ITSN_App/main/NEO_FASTAS/'
+
         gen_minu = gene_s.lower()
         neoag_minu = neo_s.lower()         
 
@@ -1308,7 +1365,12 @@ with tab2:
                 
                 with st.form(gene_s+neo_s):
                     st.subheader("AlphaFold 3 prediction")
-                    Sel_pred =st.radio(label= "Pred", options=["Wildtype vs. Mutation comparative", "Mutation results", "Wildtype results"], index=0, key=gene_s+neo_s+"2", horizontal=True, captions=None, label_visibility="collapsed")                              
+                    Sel_pred =st.radio(label= "Pred", options=["Wildtype vs. Mutation comparative", "Mutation results", "Wildtype results"], index=0, key=gene_s+neo_s+"2", horizontal=True, captions=None, label_visibility="collapsed")
+                    sel_superimpose = st.radio(
+                            label = "Select superimpose mode",
+                            options = [ "PLDDT > 70 ", "Global"], 
+                            key = neoag_minu,
+                            horizontal=True)                              
                     # with hilera2:
                     #     st3d_view = st.checkbox(label= "3D Structure", value=False, key= "3D Structure"+neo_s, label_visibility="visible")
                     #     pae_view = st.checkbox(label= "PAE", value=False, key= "pae"+neo_s, label_visibility="visible")
@@ -1326,6 +1388,8 @@ with tab2:
                 #Obtener PDB
                 path_pdb_wt = path_pdb_wt_git + gen_minu + '_wt.pdb' 
                 path_pdb_mut = path_pdb_mut_git + gen_minu + '_' + neoag_minu + '.pdb'
+                path_fasta_wt = path_fasta_wt_git + gene_s + '_wt.fasta' 
+                path_fasta_mut = path_fasta_mut_git + gene_s + '_' + neo_s + '.fasta'
                 df_pdb_wt = GET_PDB_CA(path_pdb_wt)
                 df_pdb_mut = GET_PDB_CA(path_pdb_mut)
 
@@ -1334,32 +1398,21 @@ with tab2:
                 with urllib.request.urlopen(path_pdb_mut) as response:
                         mut_pdb = response.read().decode('utf-8')
 
-                w1, w2, w3 = st.columns([1,1,3])
-                with w1:
-                    st.metric(label = ("PTM Score WT:"),
-                        value = ptm_wt)
-                with w2:
-                    st.metric(label = ("PTM Score MUT:"),
-                        value = ptm_mut)
+
 
                 l1, l2 = st.columns([3,2])
                 with l1:
                     st.header('3D structure')
                     if Sel_pred == "Wildtype vs. Mutation comparative":
-                        sel_superimpose = st.radio(
-                            label = "Select superimpose mode",
-                            options = ["Global", "PLDDT > 70 "], 
-                            key = neoag_minu,
-                            horizontal=True)
+
                         
                         if sel_superimpose == "Global":
                             
                             sup_pdb =  superimpose_proteins(wt_pdb, mut_pdb)
                         else:
-                            
-                            sup_pdb =  superimpose_proteins(wt_pdb, mut_pdb)
+                            sup_pdb =  superimpose_pdb_with_threshold(path_pdb_wt, path_pdb_mut)
 
-                    Spin = st.toggle("Spin", key=gene_s+'spin', value = True)
+                    Spin  = False
                     
 
 
@@ -1418,133 +1471,79 @@ with tab2:
                         st.warning("This structure is too large to graph its PAE.")
 
             
-                ref_wt = "WildType"
-                ref_mut = "Mutation"
-
-                
-                st.header('PLDDT')
-                fig_plddt = GET_PLDDTS(df_pdb_wt, ref_wt, df_pdb_mut, ref_mut, posicion_en_secuencia_completa)
-                st.plotly_chart(fig_plddt)
-
-
                 ## aa distance
-                st.header('AA distance')
-                sel_superimpose = st.radio(
-                    label = "Select superimpose mode",
-                    options = ["Global", "PLDDT > 70 "], 
-                    key = neoag_minu + "AA",
-                    horizontal=True)
                 
-                if sel_superimpose == "Global":
-                    
-                    sup_pdb =  superimpose_proteins(wt_pdb, mut_pdb)
-                else:
-                    
-                    sup_pdb =  superimpose_proteins(wt_pdb, mut_pdb)
-
-
                 reference_pdb_path = wt_pdb
                 sample_pdb_path = sup_pdb
-                distancias = aadistance(reference_pdb_path, sample_pdb_path, posicion_en_secuencia_completa)
+                distancias, tmscore, rmsd = aadistance(reference_pdb_path, sample_pdb_path, posicion_en_secuencia_completa)
+                ##PLDDT
+                ref_wt = "WildType"
+                ref_mut = "Mutation"
+                fig_plddt = GET_PLDDTS(df_pdb_wt, ref_wt, df_pdb_mut, ref_mut, posicion_en_secuencia_completa)
+
+                w1, w2, w3 = st.columns([1,1,3])
+                with w1:
+                    st.metric(label = ("PTM Score WT:"),
+                        value = ptm_wt)
+                with w2:
+                    st.metric(label = ("PTM Score MUT:"),
+                        value = ptm_mut)
                 
+                #Grafico plddt
+                st.header('PLDDT')
+                st.plotly_chart(fig_plddt)
+
+                st.header('AA distance')
+                u1, u2, u3 = st.columns([1,1,3])
+                with u1:
+                    st.metric(label = ("TM Score:"),
+                        value = tmscore)
+                with u2:
+                    st.metric(label = ("RMSD:"),
+                        value = (str(rmsd) + " Å"))
+                                 
                 st.plotly_chart(distancias)
+                
+                
 
+                
+                json_url = "https://github.com/tu_usuario/tu_repo/ruta_del_archivo.json"
+                fasta_url = "https://bitbucket.org/tu_usuario/tu_repo/ruta_del_archivo.fasta"
 
-
-
-
-
-
-
-
-
-                # with t2:
-                #     AF3pred = st.toggle("Show AlphaFold3 prediction", key=gene_s+'toggle')
-                # if AF3pred:
-                #     if seq_len > 3000:
-                #         st.info('Sequences longer than 2000 AA are too big to upload some graphs', icon="ℹ️")
-                #     elif seq_len > 1000:
-                #         st.info('Larger sequences might take a moment to load', icon="ℹ️")
-                    
-
-                #     #Obtener PDB
-                #     path_pdb_wt = path_pdb_wt_git + gen_minu + '_wt.pdb' 
-                #     path_pdb_mut = path_pdb_mut_git + gen_minu + '_' + neoag_minu + '.pdb'
-                #     df_pdb_wt = GET_PDB_CA(path_pdb_wt)
-                #     df_pdb_mut = GET_PDB_CA(path_pdb_mut)
-
-                #     with urllib.request.urlopen(path_pdb_wt) as response:
-                #             wt_pdb = response.read().decode('utf-8')
-                #     with urllib.request.urlopen(path_pdb_mut) as response:
-                #             mut_pdb = response.read().decode('utf-8')
-                    
-                #     sup_pdb =  superimpose_proteins(wt_pdb, mut_pdb)
-
-                #     ps=st.radio(label= "Pred", options=["Wildtype vs. Mutation comparative", "Mutation results", "Wildtype results"], index=0, key=gene_s+neo_s, horizontal=True, captions=None, label_visibility="collapsed")                              
-
-                #     genes_muy_pesados = ['KMT2C', 'DYNC1H1', 'HUWE1', 'ALMS1', 'UTRN']
-                #     if  gene_s not in genes_muy_pesados:
-                #         path_pae_wt = path_pae_wt_git + gen_minu + '_wt.json' 
-                #         path_pae_mut = path_pae_mut_git + gen_minu + '_' + neoag_minu + '.json'
-                #         df_pae_wt = GET_PAE_DF(path_pae_wt)
-                #         df_pae_mut = GET_PAE_DF(path_pae_mut)
-
-                #     view_3d = py3Dmol.view(width=800, height=500)                    
-                #     if ps == "Wildtype vs. Mutation comparative":
-                #         if  gene_s not in genes_muy_pesados:
-                #             fig_pae = GET_PAE_DIF(df_pae_wt, df_pae_mut)
-                                                
-                #         view_3d.addModel(wt_pdb, 'pdb')
-                #         view_3d.setStyle({'model': 0}, {"cartoon": {'color': '0x51adbe'}})  # Modelo 0 con color azul
-                #         view_3d.addModel(sup_pdb, 'pdb')
-                #         view_3d.setStyle({'model': 1}, {"cartoon": {'color': '0xc4ffb2'}})  # Modelo 0 con color azul
-
-                #     elif ps == "Mutation results":
-                #         if  gene_s not in genes_muy_pesados:
-                #             fig_pae = GET_PAE_GRAPH(df_pae_mut)
-                        
-                #         view_3d.addModel(sup_pdb, 'pdb')
-                #         view_3d.setStyle({'model': 0}, {"cartoon": {'color': '0xc4ffb2'}})  # Modelo 0 con color azul
-                    
-                #     else:
-                #         if  gene_s not in genes_muy_pesados:
-                #             fig_pae = GET_PAE_GRAPH(df_pae_wt)
-            
-                #         view_3d.addModel(wt_pdb, 'pdb')
-                #         view_3d.setStyle({'model': 0}, {"cartoon": {'color': '0x51adbe'}})  # Modelo 0 con color azul
-
-                #     # Configuraciones de vista
-                    
-
-                #     if gene_s not in genes_muy_pesados:
-                #         l1, l2 = st.columns([3,2])
-                #         with l1:
-                #             st.header('3D structure')
-                #             Spin = st.toggle("Spin", key=gene_s+'spin', value = True)
-                #             view_3d.spin(Spin)
-                #             view_3d.zoomTo()
-                #             #showmol(view_3d)
-                #             st.components.v1.html(view_3d._make_html(), height=500, width=800)
-
-                #         with l2:
-                #             if gene_s not in genes_muy_pesados:
-                #                 st.plotly_chart(fig_pae)
-                #             else:
-                #                 st.warning("This structure is too large to graph its PAE.")
-                   
-                #     ref_wt = "WildType"
-                #     ref_mut = "Mutation"
-                #     fig_plddt = GET_PLDDTS(df_pdb_wt, ref_wt, df_pdb_mut, ref_mut)
-                #     st.plotly_chart(fig_plddt)
-                #     st.write("PTM Score WT: ", ptm_wt)
-                #     st.write("PTM Score MUT: ", ptm_mut)
-
-                #     ## aa distance
-
-                #     reference_pdb_path = wt_pdb
-                #     sample_pdb_path = sup_pdb
-                #     distancias = aadistance(reference_pdb_path, sample_pdb_path)
-                #     st.plotly_chart(distancias)
+                # path_pdb_wt 
+                # path_pdb_mut 
+                # path_pae_wt
+                # path_pae_mut
+                # path_fasta_wt
+                # path_fasta_mut
+                def descargar_archivo(url):
+                    response = requests.get(url)
+                    response.raise_for_status()  # Asegura que no haya errores en la descarga
+                    return response.content
+                path_fasta_wt = path_fasta_wt_git + gene_s + '_wt.fasta' 
+                path_fasta_mut = path_fasta_mut_git + gene_s + '_' + neo_s + '.fasta'
+                dl1, dl2, dl3, dl4, dl5, dl6 = st.columns(6)
+                with dl1:
+                    # Botón de descarga para archivo .pdb
+                    pdb_content = descargar_archivo(path_pdb_wt)
+                    st.download_button(label="Download wildtype's pdb", data=pdb_content, file_name= gene_s + "_wt.pdb", key = "pdb" + path_pdb_wt)
+                with dl2:
+                    pdb_content = descargar_archivo(path_pdb_mut)
+                    st.download_button(label="Download mutation's pdb", data=pdb_content, file_name= gene_s + '_' + neo_s + ".pdb", key = "pdb" + path_pdb_mut)
+                with dl3:
+                    # Botón de descarga para archivo .json
+                    json_content = descargar_archivo(path_pae_wt)
+                    st.download_button(label="Download wildtype's pae", data=json_content, file_name= gene_s + "_wt.json", key = "pae" + path_pae_wt)
+                with dl4:
+                    json_content = descargar_archivo(path_pae_mut)
+                    st.download_button(label="Download mutation's pae", data=json_content, file_name= gene_s + '_' + neo_s + ".json", key= "pae" + path_pae_mut)
+                # Botón de descarga para archivo .fasta
+                with dl5:
+                    fasta_content = descargar_archivo(path_fasta_wt)
+                    st.download_button(label="Download wildtype's fasta", data=fasta_content, file_name= gene_s + "_wt.fasta", key= "fasta" + path_fasta_wt)
+                with dl6:
+                    fasta_content = descargar_archivo(path_fasta_mut)
+                    st.download_button(label="Download mutation's fasta", data=fasta_content, file_name= gene_s + '_' + neo_s + ".fasta", key = "fasta" + path_fasta_mut)
 
 
 with tab3:    
@@ -1641,12 +1640,7 @@ with tab3:
         
 
         return df_roc_metrics, min_dop, dop_thr, dop_f1, auc
-
-
-
-
-
-    #st.header("Software Validation")
+  #st.header("Software Validation")
 
     with st.expander("", expanded=True):
 
