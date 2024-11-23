@@ -177,13 +177,27 @@ def GET_PLDDTS(pdb_1, ref_1, pdb_2, ref_2, mutacion_posicion):
                                     y=pdb_2["B factor"],
                                     name=(ref_2),
                                     line=dict(color='#db7093')))
+    
     fig_plddt.add_shape(
         type="line",
         x0=mutacion_posicion,  # Posición de la mutación en el eje x
         y0=0,                  # Empieza desde el mínimo del eje y
         x1=mutacion_posicion,  # Termina en la misma posición en x
         y1=max(pdb_1["B factor"].max(), pdb_2["B factor"].max()),  # Altura máxima en el eje y
-        line=dict(color="red", width=2, dash="dash")  # Línea roja discontinua
+        line=dict(color="red", width=2, dash="dash")
+    )
+    
+    fig_plddt.add_trace(go.Scatter(
+        x=[mutacion_posicion],
+        y=[0],  # Punto ficticio para la leyenda
+        mode="lines",
+        line=dict(color="red", width=2, dash="dash"),
+        name="Mutation's position"
+    ))
+
+    fig_plddt.update_layout(
+        yaxis_title="PLDDT value",
+        xaxis_title="CA atom index" 
     )
     return fig_plddt
 #   >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -455,7 +469,12 @@ def aadistance(reference_pdb, sample_pdb, mutacion_posicion):
     # Calcular las distancias euclidianas
     distancia_euclidiana = np.sqrt(np.sum((ref_coords - sample_coords) ** 2, axis=1))
 
-    fig = go.Figure(data=[go.Bar(x=list(range(len(distancia_euclidiana))), y=distancia_euclidiana, marker=dict(color='#71B9C7'))])
+    fig = go.Figure(data=[go.Bar(
+        x=list(range(len(distancia_euclidiana))), 
+        y=distancia_euclidiana, 
+        marker=dict(color='#71B9C7'),
+        name="Euclidean distances"  # Leyenda para las distancias euclidianas
+    )])
         # Añadir una línea vertical para la posición de la mutación
     fig.add_shape(
         type="line",
@@ -465,12 +484,23 @@ def aadistance(reference_pdb, sample_pdb, mutacion_posicion):
         y1=max(distancia_euclidiana),  # Altura máxima del gráfico
         line=dict(color="red", width=2, dash="dash")  # Línea roja discontinua
     )
+
     
+    fig.add_trace(go.Scatter(
+        x=[mutacion_posicion],
+        y=[0],  # Punto ficticio para la leyenda
+        mode="lines",
+        line=dict(color="red", width=2, dash="dash"),
+        name="Mutation position"
+    ))
+
    
     fig.update_layout(title="Euclidean distances between CA atoms",
                       xaxis_title="CA atom index",
                       yaxis_title="Euclidean distance",
-                      showlegend=False)
+                      showlegend=True)
+    
+    
     # Calcular TM-score y RMSD global
     d0_ltarget = 1.24 * np.cbrt(len(ref_atoms) - 15) - 1.8
     tm_score = np.sum(1 / (1 + (distancia_euclidiana / d0_ltarget) ** 2)) / len(ref_atoms)
@@ -572,6 +602,14 @@ with st.sidebar:
          width = 150)
     st.image("Copia de FPM_Logotipos_RGB-01.png",
          width = 150) 
+    st.subheader("Useful links")
+
+    # Botón para el artículo de investigación
+    st.page_link(page = "https://doi.org/10.3389/fimmu.2023.1094236", label = "Research article", icon="📑")
+
+
+    # Botón para el repositorio de GitHub
+    st.page_link(page = "https://github.com/roflesia/ITSN_App", label = "GitHub repository", icon="🔗")
 
 #   TABS
 tab1, tab2, tab3= st.tabs(["HOME", "DATABASE", "SOFTWARE VALIDATION"])
@@ -919,7 +957,16 @@ with tab1:
                 st.plotly_chart(fig_mat_frec_10, use_container_width=True)
                 st.caption('PFM matrices of 10-mer neoantigens: A. Immunogenic, B. Non-immunogenic, C. Difference. Each matrix shows the frequency of each amino acid at each position.')
 
-        
+    st.subheader("Useful links")
+
+    # Botón para el artículo de investigación
+    st.page_link(page = "https://doi.org/10.3389/fimmu.2023.1094236", label = "Access the original research article", icon="📑")
+
+
+    # Botón para el repositorio de GitHub
+    st.page_link(page = "https://github.com/roflesia/ITSN_App", label = "Visit the GitHub repository for this project", icon="🔗")
+
+
 with tab2:
 
     #Creación de listas con valores unicos y ordenadas alfabeticamente    
