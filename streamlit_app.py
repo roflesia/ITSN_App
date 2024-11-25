@@ -1450,14 +1450,12 @@ with tab2:
                 l1, l2 = st.columns([3,2])
                 with l1:
                     st.header('3D structure')
-                    if Sel_pred == "Wildtype vs. Mutation comparative":
-
+                
+                    if sel_superimpose == "Global":
                         
-                        if sel_superimpose == "Global":
-                            
-                            sup_pdb =  superimpose_proteins(wt_pdb, mut_pdb)
-                        else:
-                            sup_pdb =  superimpose_pdb_with_threshold(path_pdb_wt, path_pdb_mut)
+                        sup_pdb =  superimpose_proteins(wt_pdb, mut_pdb)
+                    else:
+                        sup_pdb =  superimpose_pdb_with_threshold(path_pdb_wt, path_pdb_mut)
 
                     Spin  = False
                     
