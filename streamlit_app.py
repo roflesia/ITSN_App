@@ -166,17 +166,23 @@ def GET_PDB_CA(ruta):
 #Return
     #fig_plddt
 
-def GET_PLDDTS(pdb_1, ref_1, pdb_2, ref_2, mutacion_posicion):
+def GET_PLDDTS(pdb_1, ref_1, pdb_2, ref_2, mutacion_posicion, Sel_pred):
     fig_plddt = go.Figure()
+
+    # Configurar visibilidad inicial según el flag Sel_pred
+    visible_pdb_1 = "legendonly" if Sel_pred == "Mutation results" else True
+    visible_pdb_2 = "legendonly" if Sel_pred == "Wildtype results" else True
     
     fig_plddt.add_trace(go.Scatter( x=pdb_1.index,
                                     y=pdb_1["B factor"],
                                     name=(ref_1),
-                                    line=dict(color='#71b9c7')))
+                                    line=dict(color='#71b9c7'),
+                                    visible=visible_pdb_1))
     fig_plddt.add_trace(go.Scatter(x=pdb_2.index,
                                     y=pdb_2["B factor"],
                                     name=(ref_2),
-                                    line=dict(color='#db7093')))
+                                    line=dict(color='#db7093'),
+                                    visible=visible_pdb_2))
     
     fig_plddt.add_shape(
         type="line",
@@ -572,7 +578,7 @@ st.set_page_config(
     page_title="ITSNdb app",
     page_icon="Logo_cel.png",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
     menu_items={
         # #pestañas del menu que se pueden modificar, pero solo acepta estas 3
         # 'Get Help': "COMPLETAR MAIL",
@@ -602,7 +608,8 @@ with st.sidebar:
          width = 150)
     st.image("Copia de FPM_Logotipos_RGB-01.png",
          width = 150) 
-    st.subheader("Useful links")
+    
+    st.subheader("Usefull links")
 
     # Botón para el artículo de investigación
     st.page_link(page = "https://doi.org/10.3389/fimmu.2023.1094236", label = "Research article", icon="📑")
@@ -643,6 +650,12 @@ with tab1:
     #Columna 1: Texto
     with col1:
         st.header("What is ITSNdb?")
+
+        # Botón para el artículo de investigación
+        st.page_link(page = "https://doi.org/10.3389/fimmu.2023.1094236", label = "Access the original research article", icon="📑")
+        # Botón para el repositorio de GitHub
+        st.page_link(page = "https://github.com/roflesia/ITSN_App", label = "Visit the GitHub repository for this project", icon="🔗")
+        
         multi = '''The ITSNdb is a *new* neoantigen database with know immunogenic and non immunogenic tumor specific antigenic peptides derived from genomic rearrangements, such as single nucleotide variants (SNVs), that satisfy the following criteria: '''
         multi2 = '''
           1. The wild type counterpart has been identified in the source protein
@@ -677,6 +690,7 @@ with tab1:
         style_metric_cards()
 
         st.write(" ")
+
 
     #Gráficos:
     # grafico de torta con tipos tumorales
@@ -896,7 +910,7 @@ with tab1:
     ColA, ColB, ColC= st.columns([1,4,1], gap="large")
 
     with ColA:  
-        st.header("Statistical graphs")
+        st.header("Statistical plots")
         ColAA, ColAB = st.columns(2)
         with ColAA:
             previous = st.button(":rewind:", use_container_width=True)
@@ -957,14 +971,8 @@ with tab1:
                 st.plotly_chart(fig_mat_frec_10, use_container_width=True)
                 st.caption('PFM matrices of 10-mer neoantigens: A. Immunogenic, B. Non-immunogenic, C. Difference. Each matrix shows the frequency of each amino acid at each position.')
 
-    st.subheader("Useful links")
-
-    # Botón para el artículo de investigación
-    st.page_link(page = "https://doi.org/10.3389/fimmu.2023.1094236", label = "Access the original research article", icon="📑")
 
 
-    # Botón para el repositorio de GitHub
-    st.page_link(page = "https://github.com/roflesia/ITSN_App", label = "Visit the GitHub repository for this project", icon="🔗")
 
 
 with tab2:
@@ -1450,20 +1458,14 @@ with tab2:
                 l1, l2 = st.columns([3,2])
                 with l1:
                     st.header('3D structure')
-                
+                      
                     if sel_superimpose == "Global":
-                        
                         sup_pdb =  superimpose_proteins(wt_pdb, mut_pdb)
                     else:
                         sup_pdb =  superimpose_pdb_with_threshold(path_pdb_wt, path_pdb_mut)
 
                     Spin  = False
                     
-
-
-
-                
-
                 #Obtener PAE
                 if  gene_s not in genes_muy_pesados:       
                     path_pae_wt = path_pae_wt_git + gen_minu + '_wt.json' 
@@ -1524,31 +1526,41 @@ with tab2:
                 ##PLDDT
                 ref_wt = "WildType"
                 ref_mut = "Mutation"
-                fig_plddt = GET_PLDDTS(df_pdb_wt, ref_wt, df_pdb_mut, ref_mut, posicion_en_secuencia_completa)
+                fig_plddt = GET_PLDDTS(df_pdb_wt, ref_wt, df_pdb_mut, ref_mut, posicion_en_secuencia_completa, Sel_pred)
 
-                w1, w2, w3 = st.columns([1,1,3])
-                with w1:
-                    st.metric(label = ("PTM Score WT:"),
-                        value = ptm_wt)
-                with w2:
+
+                if Sel_pred == "Wildtype vs. Mutation comparative":
+                    w1, w2, w3 = st.columns([1,1,3])
+                    with w1:
+                        st.metric(label = ("PTM Score WT:"),
+                            value = ptm_wt)
+                    with w2:
+                        st.metric(label = ("PTM Score MUT:"),
+                            value = ptm_mut)
+                elif Sel_pred == "Mutation results":
                     st.metric(label = ("PTM Score MUT:"),
-                        value = ptm_mut)
+                            value = ptm_mut)
+                else:
+                    st.metric(label = ("PTM Score WT:"),
+                             value = ptm_wt)
                 
                 #Grafico plddt
                 st.header('PLDDT')
                 st.plotly_chart(fig_plddt)
 
-                st.header('AA distance')
+
+                if Sel_pred == "Wildtype vs. Mutation comparative":
+                    st.header('AA distance')
+                    u1, u2, u3 = st.columns([1,1,3])
+                    with u1:
+                        st.metric(label = ("TM Score:"),
+                            value = round(tmscore, 3))
+                    with u2:
+                        st.metric(label = ("RMSD:"),
+                            value = (str(round(rmsd,3)) + " Å"))
+                    st.plotly_chart(distancias)
                 
-                u1, u2, u3 = st.columns([1,1,3])
-                with u1:
-                    st.metric(label = ("TM Score:"),
-                        value = round(tmscore, 3))
-                with u2:
-                    st.metric(label = ("RMSD:"),
-                        value = (str(round(rmsd,3)) + " Å"))
-                                 
-                st.plotly_chart(distancias)
+
                 
                 
 
