@@ -1245,6 +1245,7 @@ with tab2:
         #EXTRACCIÓN DE LOS DATOS DEL REGISTRO SELECCIONADO            
         neo_s=df_Selected.loc[i,"Neoantigen"]
         wt_s=df_Selected.loc[i,"WT"]
+        neotype_s=df_Selected.loc[i,"NeoType"]
         author_s=df_Selected.loc[i,"Author"]
         paper_s=df_Selected.loc[i,"Paper"]
         gene_s=df_Selected.loc[i,"GeneSymbol"]
@@ -1332,6 +1333,7 @@ with tab2:
             
             t1,t2, t3= st.columns([2,3,2])
             with t1:
+                st.write("  :dart:", "**Immunogenicity:** ", neotype_s)
                 st.metric(label = ("Neoantigen:"),
                         value = neo_s)
             
